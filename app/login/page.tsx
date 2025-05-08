@@ -15,7 +15,8 @@ export default function LoginPage() {
                 headers: { "Content-Type": "application/json"}, 
                 body :JSON.stringify({
                     username: formData.username,
-                    password: formData.password} )
+                    password: formData.password
+                  })
             }
         ) 
 
@@ -26,7 +27,7 @@ export default function LoginPage() {
         
         if(data.token){            
             localStorage.setItem('token', data.token);
-            window.location.href = "/users";
+            window.location.href = "/";
         }
         
 
@@ -62,7 +63,7 @@ export default function LoginPage() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="email" className="sr-only">Email</label>
+              <label htmlFor="username" className="sr-only">Usuario</label>
               <input
                 id="username"
                 name="username"
