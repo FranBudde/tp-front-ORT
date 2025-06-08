@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+    const router = useRouter();
     const [formData, setFormData] = useState({});
     const [error, setError] = useState("");
 
@@ -9,7 +11,7 @@ export default function LoginPage() {
     e.preventDefault();
     
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/user/login` , 
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/login` , 
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json"}, 
@@ -24,7 +26,7 @@ export default function LoginPage() {
         
         if(data.token){            
             localStorage.setItem('token', data.token);
-            window.location.href = "/";
+            router.push("/balanceDashboard");
         }
         
 
