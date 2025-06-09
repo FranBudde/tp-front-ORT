@@ -26,7 +26,7 @@ export default function LoginPage() {
         
         if(data.token){            
             localStorage.setItem('token', data.token);
-            router.push("/balanceDashboard");
+            router.push("/home");
         }
         
 
