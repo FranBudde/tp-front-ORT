@@ -4,14 +4,22 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
     const router = useRouter();
-    const [formData, setFormData] = useState({});
+    // en la parte superior de tu componente:
+const [formData, setFormData] = useState({
+  firstName: "",
+  lastName:  "",
+  userName:  "",
+  password:  ""
+});
+
     const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/user/login` , 
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/user/insert_user` , 
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json"}, 
@@ -20,23 +28,18 @@ export default function LoginPage() {
         ) 
 
         if(!response.ok){
-            throw new Error("Error al iniciar sesion");
+            throw new Error("Error al registrarse");
         }
-        const data = await response.json();
-        
-        if(data.token){            
-            localStorage.setItem('token', data.token);
-            router.push("/");
-        }
-        
 
-    } catch (err) {
+        router.push("/login");
+        
+    } catch ( err ) {
         setError(err.message || "Error al conectar con el servidor" );
     }
 
   };
   
-  const handleChange = (e) => {
+  const handleChange = ( e ) => {
     const { name, value } = e.target;
     setFormData(prev => ({
         ...prev, 
@@ -49,7 +52,7 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Iniciar sesión
+            Registrarse
           </h2>
         </div>
         
@@ -61,11 +64,38 @@ export default function LoginPage() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
+
             <div>
-              <label htmlFor="username" className="sr-only">Usuario</label>
+              <label htmlFor="firstName" className="sr-only">Nombre</label>
               <input
-                id="username"
-                name="username"
+                id="firstName"
+                name="firstName"
+                type="text"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Nombre"
+                onChange={handleChange}                                
+              />
+            </div>
+
+            <div>
+              <label htmlFor="lastName" className="sr-only">Apellido</label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Apellido"
+                onChange={handleChange}                                
+              />
+            </div>
+
+            <div>
+              <label htmlFor="userName" className="sr-only">Usuario</label>
+              <input
+                id="userName"
+                name="userName"
                 type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
@@ -92,15 +122,15 @@ export default function LoginPage() {
             <button
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
-              Iniciar sesión
+              Registrarse
             </button>
           </div>
 
           <div className="text-center">
           <p className="text-sm text-gray-600">
-            ¿No tienes una cuenta?{' '}
-            <a href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Registrarse
+            ¿Ya tenes una cuenta?{' '}
+            <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Loguearse
             </a>
           </p>
         </div>
