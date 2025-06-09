@@ -1,6 +1,5 @@
-"use client"
-
-import { useState } from 'react';
+"use client";
+import React, { useState } from 'react';
 import { ArrowLeft, Calculator, Plus, Search } from 'lucide-react';
 
 export default function AddTransactionForm() {
@@ -56,10 +55,11 @@ export default function AddTransactionForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-800 to-gray-900 text-white">
+    <div className="min-h-screen bg-gradient-to-b from-green-800 to-gray-900 text-white flex justify-center">
+      <div className="w-full max-w-md mx-auto relative">
       {/* Header */}
       <div className="flex items-center justify-between p-4 pt-12">
-        <ArrowLeft size={24} className="text-white" />
+        <ArrowLeft size={24} className="text-white cursor-pointer hover:text-gray-300" />
         <h1 className="text-xl font-semibold">Add Transactions</h1>
         <div className="w-6" />
       </div>
@@ -89,11 +89,11 @@ export default function AddTransactionForm() {
       </div>
 
       {/* Amount Display */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <div className="flex items-center justify-center gap-4 mb-4">
-          <span className="text-6xl font-light">{amount}</span>
-          <span className="text-3xl text-green-400 font-medium">ARS</span>
-          <Calculator size={32} className="text-gray-400" />
+          <span className="text-5xl font-light">{amount}</span>
+          <span className="text-2xl text-green-400 font-medium">ARS</span>
+          <Calculator size={28} className="text-gray-400" />
         </div>
       </div>
 
@@ -104,23 +104,23 @@ export default function AddTransactionForm() {
       </div>
 
       {/* Categories */}
-      <div className="px-4 mb-8">
+      <div className="px-4 mb-6">
         <div className="text-gray-400 text-sm mb-4">Categories</div>
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-4 gap-3">
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`flex flex-col items-center p-4 rounded-2xl transition-all ${
+              className={`flex flex-col items-center p-3 rounded-2xl transition-all hover:scale-105 ${
                 selectedCategory === category.id 
                   ? 'ring-2 ring-green-400' 
                   : ''
               }`}
             >
-              <div className={`w-16 h-16 rounded-full ${category.color} flex items-center justify-center text-2xl mb-2`}>
+              <div className={`w-12 h-12 rounded-full ${category.color} flex items-center justify-center text-xl mb-2`}>
                 {category.icon}
               </div>
-              <span className="text-xs text-center text-gray-300">{category.name}</span>
+              <span className="text-xs text-center text-gray-300 leading-tight">{category.name}</span>
             </button>
           ))}
         </div>
@@ -196,14 +196,14 @@ export default function AddTransactionForm() {
       </div>
 
       {/* Comment */}
-      <div className="px-4 mb-8">
+      <div className="px-4 mb-6">
         <div className="text-gray-400 text-sm mb-2">Comment</div>
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          className="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-400 resize-none"
+          className="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-400 resize-none focus:border-green-400 focus:outline-none transition-colors"
           placeholder="Add comment..."
-          rows={3}
+          rows={2}
         />
         <div className="text-right text-xs text-gray-500 mt-1">
           {comment.length}/4096
@@ -211,19 +211,20 @@ export default function AddTransactionForm() {
       </div>
 
       {/* Photo Section */}
-      <div className="px-4 mb-20">
+      <div className="px-4 mb-6">
         <div className="text-gray-400 text-sm mb-4">Photo</div>
-        <button className="w-full border-2 border-dashed border-gray-600 rounded-lg py-8 flex flex-col items-center justify-center text-gray-400">
-          <Plus size={32} className="mb-2" />
+        <button className="w-full border-2 border-dashed border-gray-600 rounded-lg py-6 flex flex-col items-center justify-center text-gray-400 hover:border-gray-500 transition-colors">
+          <Plus size={24} className="mb-2" />
           <span>Add Photo</span>
         </button>
       </div>
 
       {/* Add Button */}
-      <div className="fixed bottom-8 left-4 right-4">
-        <button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-4 rounded-2xl text-lg transition-colors">
+      <div className="sticky bottom-4 left-0 right-0 px-4 mt-8">
+        <button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-4 rounded-2xl text-lg transition-colors shadow-lg">
           Add
         </button>
+      </div>
       </div>
     </div>
   );
