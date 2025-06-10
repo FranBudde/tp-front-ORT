@@ -1,40 +1,54 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
+import { jwtDecode } from "jwt-decode";
 
 export default function LoginPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({});
     const [error, setError] = useState("");
+    // const [userId, setUserID] = useState("");
+    // const [username, setUserName] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    const handleSubmit = async (e) => {
+      e.preventDefault();
     
-    try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/login` , 
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json"}, 
-                body :JSON.stringify(formData)
-            }
-        ) 
-
-        if(!response.ok){
-            throw new Error("Error al iniciar sesion");
-        }
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
+        });
+    
         const data = await response.json();
-        
-        if(data.token){            
-            localStorage.setItem('token', data.token);
-            router.push("/home");
+    
+        if (!response.ok) {
+          
+            throw new Error(data.message || "Error al iniciar sesión");
         }
-        
+    
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          try {
+            const decodedToken = jwtDecode(data.token);
+            const userIdFromToken = decodedToken.userId;
+            // const username = decodedToken.username;
 
-    } catch (err) {
-        setError(err.message || "Error al conectar con el servidor" );
-    }
-
-  };
+            // setUserID(userIdFromToken)
+            // setUserName(username)
+            router.push(`/${userIdFromToken}/home`);
+  
+          } catch (decodeError) {
+            console.error("Error al decodificar el token:", decodeError);
+            // Manejar el error de decodificación si el token es inválido localmente
+          }
+          
+        }
+      } catch (err) {
+        setError(err.message || "Error al conectar con el servidor");
+      }
+    };
+    
   
   const handleChange = (e) => {
     const { name, value } = e.target;
