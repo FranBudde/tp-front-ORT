@@ -4,8 +4,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Plus } from 'lucide-react';
 import Link from "next/link";
 
-export default function DonutChartSection({ data }) {
-  const [currentCenterAmount, setCurrentCenterAmount] = useState(0); 
+export default function DonutChartSection({ data, userID }) {
+  const [currentCenterAmount, setCurrentCenterAmount] = useState(0);
   const [formattedCenterAmount, setFormattedCenterAmount] = useState("$0");
 
   const calcularCenterAmount = () => {
@@ -17,7 +17,7 @@ export default function DonutChartSection({ data }) {
         }
       }
     }
-    setCurrentCenterAmount(total); 
+    setCurrentCenterAmount(total);
     setFormattedCenterAmount(`$${total.toLocaleString('en-US')}`);
   };
 
@@ -58,10 +58,10 @@ export default function DonutChartSection({ data }) {
 
             <Tooltip
               totalValue={currentCenterAmount}
-              content={({ active, payload, totalValue }) => { 
+              content={({ active, payload, totalValue }) => {
                 if (active && payload && payload.length) {
                   const item = payload[0].payload;
-                  
+
                   // Calculo el porcentaje
                   const calculatedPercentage = totalValue > 0
                     ? ((item.value / totalValue) * 100).toFixed(2)
@@ -92,10 +92,10 @@ export default function DonutChartSection({ data }) {
 
       {/* Add Button */}
       <div className="absolute bottom-4 right-4">
-      <Link href="/transaction">
-        <button className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg hover:bg-yellow-600 transition-colors">
-          <Plus size={24} className="text-black" />
-        </button>
+        <Link href={`/${userID}/transaction`}>
+          <button className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg hover:bg-yellow-600 transition-colors">
+            <Plus size={24} className="text-black" />
+          </button>
         </Link>
       </div>
     </div>

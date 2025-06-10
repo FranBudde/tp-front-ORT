@@ -88,7 +88,10 @@ export default function ExpenseDashboard() {
         <main className="mx-4 bg-gray-800/80 rounded-3xl p-6 mb-4 flex flex-col">
           <TimeframeSelector activeTimeframe={activeTimeframe} setActiveTimeframe={setActiveTimeframe} />
           <DateRangeNavigator dateRange="Apr 20 - Apr 26" />
-          <DonutChartSection data={expenseData} />
+          <DonutChartSection 
+            data={expenseData} 
+            userID={userId}
+          />
         </main>
         <CategoryList categories={expenseData} totalAmount={totalExpenseAmount} />
       </div>

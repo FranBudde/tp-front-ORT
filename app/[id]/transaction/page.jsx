@@ -1,8 +1,12 @@
 "use client";
 import React, { useState } from 'react';
+import { useParams } from 'next/navigation';
+import Link from "next/link";
 import { ArrowLeft, Calculator, Plus, Search } from 'lucide-react';
 
 export default function AddTransactionForm() {
+  const params = useParams()
+  const userID = params.id;
   const [activeTab, setActiveTab] = useState('expenses');
   const [amount, setAmount] = useState('0');
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -59,7 +63,9 @@ export default function AddTransactionForm() {
       <div className="w-full max-w-md mx-auto relative">
       {/* Header */}
       <div className="flex items-center justify-between p-4 pt-12">
+      <Link href={`/${userID}/home`}>
         <ArrowLeft size={24} className="text-white cursor-pointer hover:text-gray-300" />
+        </Link>
         <h1 className="text-xl font-semibold">Add Transactions</h1>
         <div className="w-6" />
       </div>
