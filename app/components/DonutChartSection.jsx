@@ -1,8 +1,8 @@
-// components/DonutChartSection.jsx
 "use client";
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Plus } from 'lucide-react';
+import Link from "next/link";
 
 export default function DonutChartSection({ data }) {
   const [currentCenterAmount, setCurrentCenterAmount] = useState(0); 
@@ -92,9 +92,11 @@ export default function DonutChartSection({ data }) {
 
       {/* Add Button */}
       <div className="absolute bottom-4 right-4">
+      <Link href="/transaction">
         <button className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg hover:bg-yellow-600 transition-colors">
           <Plus size={24} className="text-black" />
         </button>
+        </Link>
       </div>
     </div>
   );
