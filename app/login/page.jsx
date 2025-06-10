@@ -1,11 +1,14 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
+import { jwtDecode } from "jwt-decode";
 
 export default function LoginPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({});
     const [error, setError] = useState("");
+    // const [userId, setUserID] = useState("");
+    // const [username, setUserName] = useState("");
 
     const handleSubmit = async (e) => {
       e.preventDefault();
@@ -26,7 +29,20 @@ export default function LoginPage() {
     
         if (data.token) {
           localStorage.setItem("token", data.token);
-          router.push("/home");
+          try {
+            const decodedToken = jwtDecode(data.token);
+            const userIdFromToken = decodedToken.userId;
+            // const username = decodedToken.username;
+
+            // setUserID(userIdFromToken)
+            // setUserName(username)
+            router.push(`/${userIdFromToken}/home`);
+  
+          } catch (decodeError) {
+            console.error("Error al decodificar el token:", decodeError);
+            // Manejar el error de decodificación si el token es inválido localmente
+          }
+          
         }
       } catch (err) {
         setError(err.message || "Error al conectar con el servidor");
