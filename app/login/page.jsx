@@ -7,35 +7,32 @@ export default function LoginPage() {
     const [formData, setFormData] = useState({});
     const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    const handleSubmit = async (e) => {
+      e.preventDefault();
     
-    try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/login` , 
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json"}, 
-                body :JSON.stringify(formData)
-            }
-        ) 
-
-        if(!response.ok){
-            console.log(response)
-            throw new Error("Error al iniciar sesion");
-        }
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
+        });
+    
         const data = await response.json();
-        
-        if(data.token){            
-            localStorage.setItem('token', data.token);
-            router.push("/home");
+    
+        if (!response.ok) {
+          
+            throw new Error(data.message || "Error al iniciar sesión");
         }
-        
-
-    } catch (err) {
-        setError(err.message || "Error al conectar con el servidor" );
-    }
-
-  };
+    
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          router.push("/home");
+        }
+      } catch (err) {
+        setError(err.message || "Error al conectar con el servidor");
+      }
+    };
+    
   
   const handleChange = (e) => {
     const { name, value } = e.target;
