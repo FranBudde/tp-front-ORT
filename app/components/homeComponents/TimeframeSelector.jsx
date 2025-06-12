@@ -1,4 +1,4 @@
-// components/TimeframeSelector.jsx
+// components/homeComponents/TimeframeSelector.jsx
 import React from 'react';
 
 export default function TimeframeSelector({ activeTimeframe, setActiveTimeframe }) {
@@ -9,7 +9,7 @@ export default function TimeframeSelector({ activeTimeframe, setActiveTimeframe 
       {timeframes.map((timeframe) => (
         <button
           key={timeframe}
-          onClick={() => setActiveTimeframe(timeframe.toLowerCase())}
+          onClick={() => setActiveTimeframe(timeframe.toLowerCase())} // Actualiza el estado del padre
           className={`px-4 py-2 text-sm font-medium ${
             activeTimeframe === timeframe.toLowerCase()
               ? "text-green-400 border-b-2 border-green-400"

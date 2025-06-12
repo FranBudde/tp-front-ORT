@@ -18,7 +18,7 @@ export default function DonutChartSection({ data, userID }) {
       }
     }
     setCurrentCenterAmount(total);
-    setFormattedCenterAmount(`$${total.toLocaleString('en-US')}`);
+    setFormattedCenterAmount(`$${total.toLocaleString('es-AR')}`);
   };
 
   useEffect(() => {
