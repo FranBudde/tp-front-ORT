@@ -89,8 +89,6 @@ export default function DonutChartSection({ data, userID }) {
           </PieChart>
         </ResponsiveContainer>
       </div>
-
-      {/* Add Button */}
       <div className="absolute bottom-4 right-4">
         <Link href={`/${userID}/transaction`}>
           <button className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg hover:bg-yellow-600 transition-colors">
