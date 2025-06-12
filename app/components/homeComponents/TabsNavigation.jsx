@@ -1,6 +1,3 @@
-// components/TabsNavigation.jsx
-import React from 'react';
-
 export default function TabsNavigation({ activeTab, setActiveTab }) {
   return (
     <nav className="flex mx-4 mb-6">

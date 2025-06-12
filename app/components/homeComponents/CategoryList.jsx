@@ -1,10 +1,7 @@
-import React from 'react';
-
 export default function CategoryList({ categories, totalAmount }) {
   return (
     <section className="mx-4 space-y-3">
-      {Array.isArray(categories) && categories.map((category) => { // Añadimos verificación de array
-        // Calculamos el porcentaje para cada categoría
+      {Array.isArray(categories) && categories.map((category) => {
         const calculatedPercentage = totalAmount > 0
           ? ((category.value / totalAmount) * 100).toFixed(2)
           : 0;

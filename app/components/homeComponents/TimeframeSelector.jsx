@@ -1,6 +1,3 @@
-// components/TimeframeSelector.jsx
-import React from 'react';
-
 export default function TimeframeSelector({ activeTimeframe, setActiveTimeframe }) {
   const timeframes = ["Day", "Month", "Year"];
 
