@@ -12,10 +12,13 @@ import {
   subDays,
   subMonths,
   subYears,
-} from 'date-fns'; // Importa las funciones necesarias de date-fns
-import { es } from 'date-fns/locale'; // Importa el locale español si lo necesitas para el formato
+} from 'date-fns';
+import { el, es } from 'date-fns/locale';
 
-// Importar los nuevos componentes
+// Import utils
+import categoryMapping from "../../utils/categoryMapping";
+
+// Importo los componentes necesarios para el ghome
 import Header from "../../components/homeComponents/Header";
 import TotalAmountDisplay from "../../components/homeComponents/TotalAmountDisplay";
 import TabsNavigation from "../../components/homeComponents/TabsNavigation";
@@ -30,16 +33,12 @@ export default function ExpenseDashboard() {
 
   // Estados
   const [activeTab, setActiveTab] = useState("expenses");
-  const [activeTimeframe, setActiveTimeframe] = useState("day"); // Estado para la selección de día/semana/mes/año
-  const [currentDate, setCurrentDate] = useState(new Date()); // Nuevo estado: la fecha actual seleccionada
+  const [activeTimeframe, setActiveTimeframe] = useState("day"); // estado para la selección de día/mes/año
+  const [currentDate, setCurrentDate] = useState(new Date()); // estado para la fecha actual seleccionada
   const [totalAmount, setTotalAmount] = useState(0);
-  const [error, setError] = useState(null); // Añadimos estado para el error
-
-  // Datos categorías gastos (simulados)
-  const expenseData = [
-    { id: "food", name: "Food", icon: "🍔", color: "#22c55e", bgColor: "bg-green-500", value: 1000 },
-    { id: "groceries", name: "Groceries", icon: "🛒", color: "#3b82f6", bgColor: "bg-blue-500", value: 500 },
-  ];
+  const [expenseData, setExpenseData] = useState([]);
+  const [hasData, setHasData] = useState(false);
+  const [error, setError] = useState(null); // estado para el error
 
   // Función para obtener el rango de fechas formateado
   const getFormattedDateRange = () => {
@@ -78,10 +77,10 @@ export default function ExpenseDashboard() {
     });
   };
 
-  // Efecto para obtener el balance total (se mantiene igual)
+  // Funcion para obtener el balance total del usuario
   useEffect(() => {
     async function fetchTotalBalance() {
-      if (!userId) return; // Asegúrate de tener userId antes de hacer la llamada
+      if (!userId) return; // Si no tengo userId rompo
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/get_total_balance`, {
           method: "POST",
@@ -112,7 +111,82 @@ export default function ExpenseDashboard() {
     fetchTotalBalance();
   }, []);
 
-  // Efecto para resetear la fecha a "hoy/este mes/este año" cuando cambia el timeframe
+  // Funcion para obtener las transacciones por categoria del usuario:
+  useEffect(() => {
+    async function fetchUserTransactions() {
+      if (!userId) {
+        setExpenseData([]);
+        return;
+      }
+
+      let dateToEndpoint = "";
+      switch (activeTimeframe) {
+        case "day":
+          dateToEndpoint = format(currentDate, "yyyy-MM-dd")
+          break;
+        case "month":
+          dateToEndpoint = format(currentDate, "yyyy-MM")
+          break;
+        case "year":
+          dateToEndpoint = format(currentDate, "yyyy")
+          break;
+        default:
+          dateToEndpoint = format(currentDate, "yyyy-MM-dd");
+      }
+
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/get_transaction_by_user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            "id_user": userId,
+            "date": dateToEndpoint,
+            "transac_dsc": activeTab
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Error al obtener transacciones por categoría");
+        }
+
+        const transactions = data.data;
+        console.log("Transactions", transactions)
+
+        if(transactions.length > 0){
+          setHasData(true)
+        } else{
+          setHasData(false)
+        }
+
+        const transformedData = transactions.map(item => {
+          const mappedCategory = categoryMapping[item.name];
+
+          return {
+            id: item.name,
+            name: mappedCategory.name,
+            icon: mappedCategory.icon,
+            color: mappedCategory.color,
+            bgColor: mappedCategory.bgColor,
+            value: item.amount, 
+          };
+        });
+
+        setExpenseData(transformedData);
+        setError(null);
+
+      } catch (error) {
+        console.error("Error al obtener y transformar transacciones:", error);
+        setError(error.message || "Error al conectar con el servidor para obtener transacciones.");
+        setExpenseData([]);
+      }
+    }
+    fetchUserTransactions();
+  }, [currentDate, activeTab]);
+
+
+  // Reseteo la fecha cuando cambia el timeframe
   useEffect(() => {
     const today = new Date();
     switch (activeTimeframe) {
@@ -129,7 +203,7 @@ export default function ExpenseDashboard() {
         setCurrentDate(today);
         break;
     }
-  }, [activeTimeframe]); // Este efecto se ejecuta cada vez que activeTimeframe cambia
+  }, [activeTimeframe]);
 
   // Calculo el total de los gastos desde expenseData (simulado)
   const totalExpenseAmount = expenseData.reduce((acc, item) => {
@@ -149,12 +223,21 @@ export default function ExpenseDashboard() {
             onPrev={handlePrevPeriod}
             onNext={handleNextPeriod}
           />
-          <DonutChartSection
-            data={expenseData}
-            userID={userId}
-          />
+          {hasData && (
+            <DonutChartSection
+              data={expenseData}
+              userID={userId}
+            />
+          )}
+          {!hasData && (
+            <div className="text-white text-center py-8">
+              No hay transacciones para mostrar en este período.
+            </div>
+          )}
         </main>
-        <CategoryList categories={expenseData} totalAmount={totalExpenseAmount} />
+        {hasData && (
+          <CategoryList categories={expenseData} totalAmount={totalExpenseAmount} />
+        )}
       </div>
     </div>
   );
