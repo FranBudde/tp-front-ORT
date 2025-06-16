@@ -195,6 +195,33 @@ export default function ExpenseDashboard() {
     fetchUserTransactions();
   }, [currentDate, userId, activeTimeframe, activeTab]);
 
+  // Funcion para actualizar el Total Balance del usuario cuando toca el lapicito.
+  const handleSaveTotalAmount = async (newAmount) => {
+    setTotalAmount(newAmount);
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/update_balance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_user: userId,
+          operacion: "$set",
+          monto: newAmount
+        })
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al actualizar el balance en el backend.");
+      }
+      console.log("Balance actualizado exitosamente en el backend.");
+      // Si quisieramos podriamos llamar a fetchTotalBalance() pero no es necesario. Mientras el componente no se actualice
+      // usamos el estado actual, si se llega a actualizar, hace solo el llamado a fetchTotalBalance()
+    } catch (err) {
+      console.error("Error al guardar el balance:", err);
+
+    }
+  };
+
 
   // Reseteo la fecha cuando cambia el timeframe
   useEffect(() => {
@@ -224,7 +251,7 @@ export default function ExpenseDashboard() {
     <div className="min-h-screen bg-gradient-to-b from-green-800 to-gray-900 text-white flex justify-center">
       <div className="w-full max-w-md mx-auto relative">
         <Header />
-        <TotalAmountDisplay amount={totalAmount} />
+        <TotalAmountDisplay amount={totalAmount} onSaveAmount={handleSaveTotalAmount} />
         <TabsNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
         <main className="mx-4 bg-gray-800/80 rounded-3xl p-6 mb-4 flex flex-col relative">
           <TimeframeSelector activeTimeframe={activeTimeframe} setActiveTimeframe={setActiveTimeframe} />
@@ -243,12 +270,12 @@ export default function ExpenseDashboard() {
               No hay transacciones para mostrar en este período.
             </div>
           )}
-          <div className="absolute bottom-4 right-4"> 
-              <Link href={`/${userId}/transaction`}>
-                  <button className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg hover:bg-yellow-600 transition-colors">
-                      <Plus size={24} className="text-black" />
-                  </button>
-              </Link>
+          <div className="absolute bottom-4 right-4">
+            <Link href={`/${userId}/transaction`}>
+              <button className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg hover:bg-yellow-600 transition-colors">
+                <Plus size={24} className="text-black" />
+              </button>
+            </Link>
           </div>
         </main>
         {hasData && (
