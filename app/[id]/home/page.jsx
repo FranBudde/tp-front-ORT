@@ -1,4 +1,3 @@
-// ExpenseDashboard.jsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { useParams } from 'next/navigation';
@@ -13,12 +12,14 @@ import {
   subMonths,
   subYears,
 } from 'date-fns';
-import { el, es } from 'date-fns/locale';
+import { es } from 'date-fns/locale';
+import Link from "next/link";
+import { Plus } from "lucide-react";
 
 // Import utils
 import categoryMapping from "../../utils/categoryMapping";
 
-// Importo los componentes necesarios para el ghome
+// Importo los componentes necesarios para el home
 import Header from "../../components/homeComponents/Header";
 import TotalAmountDisplay from "../../components/homeComponents/TotalAmountDisplay";
 import TabsNavigation from "../../components/homeComponents/TabsNavigation";
@@ -33,22 +34,22 @@ export default function ExpenseDashboard() {
 
   // Estados
   const [activeTab, setActiveTab] = useState("expenses");
-  const [activeTimeframe, setActiveTimeframe] = useState("day"); // estado para la selección de día/mes/año
-  const [currentDate, setCurrentDate] = useState(new Date()); // estado para la fecha actual seleccionada
+  const [activeTimeframe, setActiveTimeframe] = useState("day");
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [totalAmount, setTotalAmount] = useState(0);
   const [expenseData, setExpenseData] = useState([]);
   const [hasData, setHasData] = useState(false);
-  const [error, setError] = useState(null); // estado para el error
+  const [error, setError] = useState(null);
 
   // Función para obtener el rango de fechas formateado
   const getFormattedDateRange = () => {
     switch (activeTimeframe) {
       case "day":
-        return format(currentDate, "MMM dd, yyyy", { locale: es }); // "Jun 12, 2025"
+        return format(currentDate, "MMM dd, yyyy", { locale: es });
       case "month":
-        return format(currentDate, "MMMM yyyy", { locale: es }); // "Junio 2025"
+        return format(currentDate, "MMMM yyyy", { locale: es });
       case "year":
-        return format(currentDate, "yyyy", { locale: es }); // "2025"
+        return format(currentDate, "yyyy", { locale: es });
       default:
         return "";
     }
@@ -80,7 +81,7 @@ export default function ExpenseDashboard() {
   // Funcion para obtener el balance total del usuario
   useEffect(() => {
     async function fetchTotalBalance() {
-      if (!userId) return; // Si no tengo userId rompo
+      if (!userId) return;
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/get_total_balance`, {
           method: "POST",
@@ -109,13 +110,14 @@ export default function ExpenseDashboard() {
     }
 
     fetchTotalBalance();
-  }, []);
+  }, [userId]);
 
   // Funcion para obtener las transacciones por categoria del usuario:
   useEffect(() => {
     async function fetchUserTransactions() {
       if (!userId) {
         setExpenseData([]);
+        setHasData(false);
         return;
       }
 
@@ -145,23 +147,29 @@ export default function ExpenseDashboard() {
           })
         });
 
-        const data = await response.json();
+        const resData = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || "Error al obtener transacciones por categoría");
+          throw new Error(resData.message || "Error al obtener transacciones por categoría");
         }
 
-        const transactions = data.data;
+        const transactions = resData.data;
         console.log("Transactions", transactions)
 
-        if(transactions.length > 0){
-          setHasData(true)
-        } else{
-          setHasData(false)
+        if (!Array.isArray(transactions)) {
+          console.warn("La respuesta del backend no es un array en data.data:", transactions);
+          setExpenseData([]);
+          setHasData(false);
+          setError("Formato de datos de transacciones inesperado.");
+          return;
         }
 
         const transformedData = transactions.map(item => {
           const mappedCategory = categoryMapping[item.name];
+
+          if (!mappedCategory) {
+            console.warn(`Categoría '${item.name}' no encontrada en categoryMapping. Usando valores por defecto.`);
+          }
 
           return {
             id: item.name,
@@ -169,21 +177,50 @@ export default function ExpenseDashboard() {
             icon: mappedCategory.icon,
             color: mappedCategory.color,
             bgColor: mappedCategory.bgColor,
-            value: item.amount, 
+            value: item.amount,
           };
         });
 
         setExpenseData(transformedData);
+        setHasData(transformedData.length > 0);
         setError(null);
 
       } catch (error) {
         console.error("Error al obtener y transformar transacciones:", error);
         setError(error.message || "Error al conectar con el servidor para obtener transacciones.");
         setExpenseData([]);
+        setHasData(false);
       }
     }
     fetchUserTransactions();
-  }, [currentDate, activeTab]);
+  }, [currentDate, userId, activeTimeframe, activeTab]);
+
+  // Funcion para actualizar el Total Balance del usuario cuando toca el lapicito.
+  const handleSaveTotalAmount = async (newAmount) => {
+    setTotalAmount(newAmount);
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/update_balance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_user: userId,
+          operacion: "$set",
+          monto: newAmount
+        })
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al actualizar el balance en el backend.");
+      }
+      console.log("Balance actualizado exitosamente en el backend.");
+      // Si quisieramos podriamos llamar a fetchTotalBalance() pero no es necesario. Mientras el componente no se actualice
+      // usamos el estado actual, si se llega a actualizar, hace solo el llamado a fetchTotalBalance()
+    } catch (err) {
+      console.error("Error al guardar el balance:", err);
+
+    }
+  };
 
 
   // Reseteo la fecha cuando cambia el timeframe
@@ -194,10 +231,10 @@ export default function ExpenseDashboard() {
         setCurrentDate(today);
         break;
       case "month":
-        setCurrentDate(startOfMonth(today)); // Empieza al inicio del mes actual
+        setCurrentDate(startOfMonth(today));
         break;
       case "year":
-        setCurrentDate(startOfYear(today)); // Empieza al inicio del año actual
+        setCurrentDate(startOfYear(today));
         break;
       default:
         setCurrentDate(today);
@@ -205,7 +242,7 @@ export default function ExpenseDashboard() {
     }
   }, [activeTimeframe]);
 
-  // Calculo el total de los gastos desde expenseData (simulado)
+  // Calculo el total de los gastos desde expenseData
   const totalExpenseAmount = expenseData.reduce((acc, item) => {
     return acc + (typeof item.value === 'number' ? item.value : 0);
   }, 0);
@@ -214,9 +251,9 @@ export default function ExpenseDashboard() {
     <div className="min-h-screen bg-gradient-to-b from-green-800 to-gray-900 text-white flex justify-center">
       <div className="w-full max-w-md mx-auto relative">
         <Header />
-        <TotalAmountDisplay amount={totalAmount} />
+        <TotalAmountDisplay amount={totalAmount} onSaveAmount={handleSaveTotalAmount} />
         <TabsNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
-        <main className="mx-4 bg-gray-800/80 rounded-3xl p-6 mb-4 flex flex-col">
+        <main className="mx-4 bg-gray-800/80 rounded-3xl p-6 mb-4 flex flex-col relative">
           <TimeframeSelector activeTimeframe={activeTimeframe} setActiveTimeframe={setActiveTimeframe} />
           <DateRangeNavigator
             dateRange={getFormattedDateRange()}
@@ -226,7 +263,6 @@ export default function ExpenseDashboard() {
           {hasData && (
             <DonutChartSection
               data={expenseData}
-              userID={userId}
             />
           )}
           {!hasData && (
@@ -234,6 +270,13 @@ export default function ExpenseDashboard() {
               No hay transacciones para mostrar en este período.
             </div>
           )}
+          <div className="absolute bottom-4 right-4">
+            <Link href={`/${userId}/transaction`}>
+              <button className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg hover:bg-yellow-600 transition-colors">
+                <Plus size={24} className="text-black" />
+              </button>
+            </Link>
+          </div>
         </main>
         {hasData && (
           <CategoryList categories={expenseData} totalAmount={totalExpenseAmount} />
