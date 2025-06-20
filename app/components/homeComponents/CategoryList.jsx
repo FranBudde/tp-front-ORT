@@ -1,4 +1,4 @@
-export default function CategoryList({ categories, totalAmount }) {
+export default function CategoryList({ categories, totalAmount, onCategoryClick }) {
   return (
     <section className="mx-4 space-y-3">
       {Array.isArray(categories) && categories.map((category) => {
@@ -9,7 +9,8 @@ export default function CategoryList({ categories, totalAmount }) {
         return (
           <div
             key={category.id}
-            className="bg-gray-800/80 rounded-2xl p-4 flex items-center justify-between"
+            className="bg-gray-800/80 rounded-2xl p-4 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors"
+            onClick={() => onCategoryClick(category.id)}
           >
             <div className="flex items-center gap-4">
               <div

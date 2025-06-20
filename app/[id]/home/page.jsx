@@ -1,6 +1,7 @@
+// app/[id]/home.page.jsx
 "use client";
 import React, { useState, useEffect } from "react";
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation'; // Importa useRouter
 import {
   format,
   startOfMonth,
@@ -30,6 +31,7 @@ import CategoryList from "../../components/homeComponents/CategoryList";
 
 export default function ExpenseDashboard() {
   const params = useParams();
+  const router = useRouter(); // Inicializa useRouter
   const userId = params.id;
 
   // Estados
@@ -166,11 +168,6 @@ export default function ExpenseDashboard() {
 
         const transformedData = transactions.map(item => {
           const mappedCategory = categoryMapping[item.name];
-
-          if (!mappedCategory) {
-            console.warn(`Categoría '${item.name}' no encontrada en categoryMapping. Usando valores por defecto.`);
-          }
-
           return {
             id: item.name,
             name: mappedCategory.name,
@@ -220,6 +217,27 @@ export default function ExpenseDashboard() {
       console.error("Error al guardar el balance:", err);
 
     }
+  };
+
+  
+  const handleCategoryClick = (originalCategoryName) => {
+    let dateForUrl = "";
+    switch (activeTimeframe) {
+      case "day":
+        dateForUrl = format(currentDate, "yyyy-MM-dd");
+        break;
+      case "month":
+        dateForUrl = format(currentDate, "yyyy-MM");
+        break;
+      case "year":
+        dateForUrl = format(currentDate, "yyyy");
+        break;
+      default:
+        dateForUrl = format(currentDate, "yyyy-MM-dd");
+    }
+
+    // Redirecciono a la pantalla de detalle de la categoria
+    router.push(`/${userId}/transactionsDetail/${originalCategoryName}?date=${dateForUrl}&transac_dsc=${activeTab}`);
   };
 
 
@@ -279,7 +297,8 @@ export default function ExpenseDashboard() {
           </div>
         </main>
         {hasData && (
-          <CategoryList categories={expenseData} totalAmount={totalExpenseAmount} />
+          // Pasamos la nueva prop onCategoryClick
+          <CategoryList categories={expenseData} totalAmount={totalExpenseAmount} onCategoryClick={handleCategoryClick} />
         )}
       </div>
     </div>
