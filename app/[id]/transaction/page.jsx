@@ -15,7 +15,7 @@ import Header from "../../components/transactionComponents/Header";
 
 // Componente principal para registrar una nueva transacción
 export default function AddTransactionForm() {
-  const params = useParams(); // Estraigo el ID del usuario desde la URL
+  const params = useParams(); // Extraigo el ID del usuario desde la URL
   const userID = params.id;
 
   // Estados
@@ -102,7 +102,7 @@ export default function AddTransactionForm() {
       console.log("✔ Transacción creada:", data);
 
       alert("Transacción registrada exitosamente.");
-
+      
       // Restablesco valores
       setAmount("0.00");
       setSelectedCategory(null);
