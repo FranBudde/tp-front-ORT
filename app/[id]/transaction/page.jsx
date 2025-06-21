@@ -1,8 +1,9 @@
 "use client";
+import categoryMapping from "../../utils/categoryMapping";
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calculator, Plus, Search } from "lucide-react";
+import { ArrowLeft, Calculator } from "lucide-react";
 import { CalendarDays } from "lucide-react";
 
 const getTodayString = () => {
@@ -29,44 +30,75 @@ export default function AddTransactionForm() {
   const [selectedDate, setSelectedDate] = useState(getTodayString());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempDate, setTempDate] = useState(null);
+  const [comment, setComment] = useState("");
 
-  const categories = [
-    {
-      id: "transport",
-      name: "Transportation",
-      icon: "🚌",
-      color: "bg-gray-500",
-    },
-    { id: "groceries", name: "Groceries", icon: "🛒", color: "bg-blue-500" },
-    { id: "beauty", name: "Peluquería", icon: "✂️", color: "bg-pink-500" },
-    { id: "food", name: "Food", icon: "🍔", color: "bg-green-500" },
-    {
-      id: "rent",
-      name: "Alquiler y Expensas",
-      icon: "🏠",
-      color: "bg-green-600",
-    },
-    { id: "health", name: "Psicólogo", icon: "❤️", color: "bg-red-500" },
-    { id: "services", name: "Servicios", icon: "💰", color: "bg-blue-600" },
-    { id: "more", name: "More", icon: "+", color: "bg-gray-600" },
-  ];
+  const handleAddTransaction = async () => {
+    if (!selectedCategory) {
+      alert("Por favor seleccioná una categoría.");
+      return;
+    }
 
-  const dates = [
-    { id: "today", label: "5/6\ntoday", active: true },
-    { id: "yesterday", label: "5/5\nyesterday", active: false },
-    { id: "twoDays", label: "5/4\ntwo days ago", active: false },
-  ];
+    if (!amount || parseFloat(amount) <= 0) {
+      alert("Ingresá un monto mayor a cero.");
+      return;
+    }
 
-  const handleAmountChange = (value) => {
-    if (value === "C") {
-      setAmount("0");
-    } else if (value === "⌫") {
-      setAmount((prev) => (prev.length > 1 ? prev.slice(0, -1) : "0"));
-    } else {
-      setAmount((prev) => {
-        if (prev === "0") return value;
-        return prev + value;
-      });
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert(
+        "No se encontró un token de sesión. Por favor, iniciá sesión nuevamente."
+      );
+      return;
+    }
+
+    // Mapeo temporal para probar, sacar al tener endpoint getCategoryByName
+    const categoryToMongoId = {
+      food: "681a9c68bac0c229cdf72195",
+      groceries: "681a9b32bac0c229cdf72194",
+      other: "684e1e2d162d6ad7c8c91099",
+    };
+
+    const mongoCategoryId =
+      categoryToMongoId[selectedCategory] || "665e6ef1f05f98a679d9a347";
+
+    const transaction = {
+      amount,
+      id_categoria: mongoCategoryId,
+      transac_dsc: activeTab,
+      comment: comment.trim(),
+      fecha: selectedDate,
+    };
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/create_transaccion`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(transaction),
+        }
+      );
+
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(`Error del servidor: ${error}`);
+      }
+
+      const data = await res.json();
+      console.log("✔ Transacción creada:", data);
+
+      alert("Transacción registrada exitosamente.");
+
+      setAmount("0.00");
+      setSelectedCategory(null);
+      setSelectedDate(getTodayString());
+    } catch (err) {
+      console.error(err);
+      alert("Ocurrió un error al guardar la transacción.");
     }
   };
 
@@ -119,6 +151,8 @@ export default function AddTransactionForm() {
       {key}
     </button>
   );
+
+  const categories = Object.values(categoryMapping);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-800 to-gray-900 text-white flex justify-center">
@@ -249,28 +283,6 @@ export default function AddTransactionForm() {
         </div>
 
         {/* Date Selection */}
-        {/*         <div className="px-4 mb-6">
-          <div className="flex gap-4">
-            {dates.map((date) => (
-              <button
-                key={date.id}
-                onClick={() => setSelectedDate(date.id)}
-                className={`px-4 py-3 rounded-xl text-sm whitespace-pre-line ${
-                  selectedDate === date.id
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-700 text-gray-300"
-                }`}
-              >
-                {date.label}
-              </button>
-            ))}
-            <button className="px-4 py-3 bg-gray-700 rounded-xl">
-              <Calculator size={16} className="text-gray-300" />
-            </button>
-          </div>
-        </div> */}
-        {/* Date Selection */}
-
         <div className="flex gap-4 items-center justify-center mb-8">
           <button
             onClick={() => setSelectedDate(getTodayString())}
@@ -325,7 +337,7 @@ export default function AddTransactionForm() {
 
           <button
             onClick={() => {
-              setTempDate(selectedDate); // mantiene consistencia
+              setTempDate(selectedDate);
               setShowDatePicker(true);
             }}
             className={`px-4 py-3 rounded-xl text-sm ${
@@ -342,9 +354,27 @@ export default function AddTransactionForm() {
           </button>
         </div>
 
+        {/* Comentario */}
+        <div className="px-4 mb-6">
+          <label htmlFor="comment" className="text-sm text-gray-300 block mb-2">
+            Comentario (opcional)
+          </label>
+          <textarea
+            id="comment"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            rows={1}
+            placeholder="..."
+            className="w-full p-3 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none"
+          />
+        </div>
+
         {/* Add Button */}
         <div className="sticky bottom-4 left-0 right-0 px-4 mt-8">
-          <button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-4 rounded-2xl text-lg transition-colors shadow-lg">
+          <button
+            onClick={handleAddTransaction}
+            className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-4 rounded-2xl text-lg transition-colors shadow-lg"
+          >
             Add
           </button>
         </div>
