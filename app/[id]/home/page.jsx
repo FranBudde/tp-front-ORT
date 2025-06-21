@@ -196,10 +196,15 @@ export default function ExpenseDashboard() {
   const handleSaveTotalAmount = async (newAmount) => {
     setTotalAmount(newAmount);
 
+    const userToken = localStorage.getItem("token");
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/update_balance`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${userToken}`
+        },
         body: JSON.stringify({
           id_user: userId,
           operacion: "$set",
