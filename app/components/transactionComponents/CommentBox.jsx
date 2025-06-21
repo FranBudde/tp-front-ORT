@@ -5,7 +5,7 @@ export default function CommentBox({ comment, onChange }) {
   return (
     <div className="px-4 mb-6">
       <label htmlFor="comment" className="text-sm text-gray-300 block mb-2">
-        Comentario (opcional)
+        Comments (optional)
       </label>
       <textarea
         id="comment"

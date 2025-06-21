@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import React, { useState, useEffect } from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 export default function DonutChartSection({ data }) {
   const [currentCenterAmount, setCurrentCenterAmount] = useState(0);
@@ -10,13 +10,13 @@ export default function DonutChartSection({ data }) {
     let total = 0;
     if (Array.isArray(data)) {
       for (const element of data) {
-        if (typeof element.value === 'number') {
+        if (typeof element.value === "number") {
           total += element.value;
         }
       }
     }
     setCurrentCenterAmount(total);
-    setFormattedCenterAmount(`$${total.toLocaleString('es-AR')}`);
+    setFormattedCenterAmount(`$${total.toLocaleString("es-AR")}`);
   };
 
   useEffect(() => {
@@ -38,9 +38,10 @@ export default function DonutChartSection({ data }) {
               dataKey="value"
               nameKey="name"
             >
-              {Array.isArray(data) && data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
+              {Array.isArray(data) &&
+                data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
             </Pie>
 
             <text
@@ -49,7 +50,7 @@ export default function DonutChartSection({ data }) {
               textAnchor="middle"
               dominantBaseline="middle"
               className="text-3xl font-light"
-              style={{ fill: 'white', pointerEvents: 'none' }}
+              style={{ fill: "white", pointerEvents: "none" }}
             >
               {formattedCenterAmount}
             </text>
@@ -61,21 +62,24 @@ export default function DonutChartSection({ data }) {
                   const item = payload[0].payload;
 
                   // Calculo el porcentaje
-                  const calculatedPercentage = totalValue > 0
-                    ? ((item.value / totalValue) * 100).toFixed(2)
-                    : 0;
+                  const calculatedPercentage =
+                    totalValue > 0
+                      ? ((item.value / totalValue) * 100).toFixed(2)
+                      : 0;
 
                   return (
                     <div
                       className="p-3 rounded-lg shadow-lg text-sm border border-gray-700"
                       style={{
-                        backgroundColor: '#000000',
-                        color: '#FFFFFF',
+                        backgroundColor: "#000000",
+                        color: "#FFFFFF",
                         zIndex: 9999,
-                        position: 'relative'
+                        position: "relative",
                       }}
                     >
-                      <div className="font-semibold mb-1">{item.icon} {item.name}</div>
+                      <div className="font-semibold mb-1">
+                        {item.icon} {item.name}
+                      </div>
                       <div>Amount: {item.value}</div>
                       <div>Percentage: {calculatedPercentage}%</div>
                     </div>
