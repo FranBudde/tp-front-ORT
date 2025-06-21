@@ -67,7 +67,7 @@ export default function AddTransactionForm() {
       id_categoria: mongoCategoryId,
       transac_dsc: activeTab,
       comment: comment.trim(),
-      fecha: selectedDate,
+      date: selectedDate,
     };
 
     try {
