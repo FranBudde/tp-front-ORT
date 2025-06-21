@@ -25,10 +25,8 @@ export default function CategoryTransactionsPage() {
 
   useEffect(() => {
     async function fetchCategoryTransactions() {
-
       try {
-        setError(null); // Reseteamos el error antes de una nueva solicitud
-
+        setError(null);
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/get_transaction_by_user_category`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -41,7 +39,6 @@ export default function CategoryTransactionsPage() {
         });
 
         const resData = await response.json();
-
         if (!response.ok) {
           throw new Error(resData.message || "Error al obtener transacciones de la categoría.");
         }
@@ -66,6 +63,11 @@ export default function CategoryTransactionsPage() {
     return transactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
   }, [transactions]);
 
+  const formatComment = (comment, maxLength = 30) => {
+    if (!comment) return '';
+    return comment.length > maxLength ? comment.substring(0, maxLength) + '...' : comment;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-800 to-gray-900 text-white flex justify-center">
       <div className="w-full max-w-md mx-auto relative p-4">
@@ -84,15 +86,27 @@ export default function CategoryTransactionsPage() {
         </p>
 
         <main className="bg-gray-800/80 rounded-3xl p-6">
-          {!error && transactions.length > 0 && ( // Si no hay error y sí hay transacciones
+          {error && <p className="text-center text-red-400">Error: {error}</p>}
+          {!error && transactions.length === 0 && (
+            <p className="text-center text-gray-400">No hay transacciones para esta categoría en este período.</p>
+          )}
+
+          {!error && transactions.length > 0 && (
             <div className="space-y-4">
               {transactions.map((transaction, index) => (
                 <div key={index} className="bg-gray-700/60 rounded-xl p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full ${categoryInfo.bgColor} flex items-center justify-center text-xl`}>
-                      {categoryInfo.icon}
+                  <div className="flex flex-col items-start gap-0">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full ${categoryInfo.bgColor} flex items-center justify-center text-xl`}>
+                        {categoryInfo.icon}
+                      </div>
+                      <span className="text-lg font-medium">{categoryInfo.name}</span>
                     </div>
-                    <span className="text-lg font-medium">{transaction.name}</span>
+                    {transaction.comment && (
+                      <p className="text-xs text-gray-400 mt-0.5 ml-[48px]">
+                        Concepto: {formatComment(transaction.comment)}
+                      </p>
+                    )}
                   </div>
                   <span className="text-xl font-semibold">${transaction.amount.toLocaleString('es-AR')}</span>
                 </div>
