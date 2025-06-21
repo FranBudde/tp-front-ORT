@@ -61,7 +61,7 @@ export default function CalculatorPad({
 
   return (
     <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs flex items-center justify-center">
-      <div className="bg-gray-900 rounded-2xl p-4 w-64 shadow-2xl transform -translate-y-60">
+      <div className="bg-gray-900 rounded-2xl p-4 w-64 shadow-2xl">
         <div className="text-right text-green-300 font-mono text-xl mb-4">
           {calcResult !== null
             ? `= ${calcResult}`

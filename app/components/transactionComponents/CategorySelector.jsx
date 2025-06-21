@@ -17,7 +17,7 @@ export default function CategorySelector({
           }`}
         >
           <div
-            className={`w-12 h-12 rounded-full ${category.color} flex items-center justify-center text-xl mb-2`}
+            className={`w-12 h-12 rounded-full ${category.bgColor} flex items-center justify-center text-xl mb-2`}
           >
             {category.icon}
           </div>

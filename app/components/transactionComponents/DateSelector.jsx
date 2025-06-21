@@ -31,7 +31,7 @@ export default function DateSelector({ selectedDate, onChange }) {
         <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-gray-900 rounded-2xl p-6 w-72 shadow-2xl transform -translate-y-60">
             <h2 className="text-white text-center mb-4 text-sm font-medium">
-              Seleccionar Fecha
+              Select Date
             </h2>
 
             <input
