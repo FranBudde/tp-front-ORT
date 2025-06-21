@@ -4,7 +4,7 @@ const categoryMapping = {
     name: "Food",
     icon: "🍔",
     bgColor: "bg-orange-600",
-    color: "#f97316",
+    color: "#ea580c",
   },
   groceries: {
     id: "groceries",
@@ -18,21 +18,21 @@ const categoryMapping = {
     name: "Home",
     icon: "🏠",
     bgColor: "bg-lime-400",
-    color: "#84cc16",
+    color: "#a3e635",
   },
   beauty: {
     id: "beauty",
     name: "Beauty",
     icon: "✂️",
     bgColor: "bg-purple-200",
-    color: "#c084fc",
+    color: "#e9d5ff",
   },
   health: {
     id: "health",
     name: "Health",
     icon: "❤️",
     bgColor: "bg-green-500",
-    color: "#6366f1",
+    color: "#22c55e",
   },
   services: {
     id: "services",
@@ -46,7 +46,7 @@ const categoryMapping = {
     name: "Transportation",
     icon: "🚌",
     bgColor: "bg-purple-600",
-    color: "#2563eb",
+    color: "#9333ea",
   },
   other: {
     id: "other",
