@@ -1,117 +1,108 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 
 export default function LoginPage() {
-    const router = useRouter();
-    const [formData, setFormData] = useState({});
-    const [error, setError] = useState("");
+  const router = useRouter();
+  const [formData, setFormData] = useState({});
+  const [error, setError] = useState("");
 
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-    
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/login`, {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/login`,
+        {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData)
-        });
-    
-        const data = await response.json();
-    
-        if (!response.ok) {
-          
-            throw new Error(data.message || "Error al iniciar sesión");
+          body: JSON.stringify(formData),
         }
-    
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-          try {
-            const decodedToken = jwtDecode(data.token);
-            const userIdFromToken = decodedToken.userId;
-            router.push(`/${userIdFromToken}/home`);
-  
-          } catch (decodeError) {
-            console.error("Error al decodificar el token:", decodeError);
-          }
-          
-        }
-      } catch (err) {
-        setError(err.message || "Error al conectar con el servidor");
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Error al iniciar sesión");
       }
-    };
-    
-  
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        try {
+          const decodedToken = jwtDecode(data.token);
+          const userIdFromToken = decodedToken.userId;
+          router.push(`/${userIdFromToken}/home`);
+        } catch (decodeError) {
+          console.error("Error al decodificar el token:", decodeError);
+        }
+      }
+    } catch (err) {
+      setError(err.message || "Error al conectar con el servidor");
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-        ...prev, 
-        [name]: value
-    }));    
-  }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div className="min-h-screen bg-gradient-to-b from-green-800 to-gray-900 text-white flex justify-center items-center">
+      <div className="w-full max-w-md mx-auto bg-gray-800/80 rounded-3xl p-8 shadow-lg">
+        <h2 className="text-center text-3xl font-bold mb-6 text-white">
+          Iniciar sesión
+        </h2>
+
+        {error && (
+          <div className="bg-red-100 text-red-800 p-3 rounded mb-4 text-sm">
+            {error}
+          </div>
+        )}
+
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <input
+              id="username"
+              name="username"
+              type="text"
+              required
+              placeholder="Nombre de usuario"
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded-md bg-gray-100 text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              autoComplete="current-password"
+              placeholder="Contraseña"
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded-md bg-gray-100 text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full py-2 rounded-md bg-yellow-500 text-black font-semibold hover:bg-yellow-600 transition-colors"
+          >
             Iniciar sesión
-          </h2>
-        </div>
-        
-        { error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span className="block sm:inline">{error}</span>
-          </div> )
-        }
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="username" className="sr-only">Usuario</label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Nombre de usuario"
-                onChange={handleChange}                                
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Contraseña</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Contraseña"  
-                onChange={handleChange}              
-              />
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
-              Iniciar sesión
-            </button>
-          </div>
-
-          <div className="text-center">
-          <p className="text-sm text-gray-600">
-            ¿No tienes una cuenta?{' '}
-            <a href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Registrarse
-            </a>
-          </p>
-        </div>
+          </button>
         </form>
+
+        <p className="text-sm text-center text-gray-300 mt-6">
+          ¿No tienes una cuenta?{" "}
+          <a
+            href="/register"
+            className="text-yellow-400 hover:text-yellow-300 font-medium"
+          >
+            Registrarse
+          </a>
+        </p>
       </div>
     </div>
   );
