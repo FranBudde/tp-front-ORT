@@ -35,6 +35,7 @@ export default function ExpenseDashboard() {
   const userId = params.id;
 
   // Estados
+
   const [activeTab, setActiveTab] = useState("expenses");
   const [activeTimeframe, setActiveTimeframe] = useState("day");
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -83,14 +84,16 @@ export default function ExpenseDashboard() {
   // Funcion para obtener el balance total del usuario
   useEffect(() => {
     async function fetchTotalBalance() {
+      const token = localStorage.getItem("token");
+
       if (!userId) return;
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/get_total_balance`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            "id_user": userId
-          })
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          }
         });
 
         const data = await response.json();
@@ -117,6 +120,9 @@ export default function ExpenseDashboard() {
   // Funcion para obtener las transacciones por categoria del usuario:
   useEffect(() => {
     async function fetchUserTransactions() {
+
+      const token = localStorage.getItem("token");
+
       if (!userId) {
         setExpenseData([]);
         setHasData(false);
@@ -141,9 +147,11 @@ export default function ExpenseDashboard() {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/get_transaction_by_user`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}` 
+          },
           body: JSON.stringify({
-            "id_user": userId,
             "date": dateToEndpoint,
             "transac_dsc": activeTab
           })
@@ -156,7 +164,6 @@ export default function ExpenseDashboard() {
         }
 
         const transactions = resData.data;
-        console.log("Transactions", transactions)
 
         if (!Array.isArray(transactions)) {
           console.warn("La respuesta del backend no es un array en data.data:", transactions);
@@ -194,19 +201,18 @@ export default function ExpenseDashboard() {
 
   // Funcion para actualizar el Total Balance del usuario cuando toca el lapicito.
   const handleSaveTotalAmount = async (newAmount) => {
-    setTotalAmount(newAmount);
+    const token = localStorage.getItem("token");
 
-    const userToken = localStorage.getItem("token");
+    setTotalAmount(newAmount);
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/update_balance`, {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json", 
-          "Authorization": `Bearer ${userToken}`
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
-          id_user: userId,
           operacion: "$set",
           monto: newAmount
         })
@@ -224,7 +230,7 @@ export default function ExpenseDashboard() {
     }
   };
 
-  
+
   const handleCategoryClick = (originalCategoryName) => {
     let dateForUrl = "";
     switch (activeTimeframe) {
