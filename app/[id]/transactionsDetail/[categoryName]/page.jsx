@@ -1,9 +1,8 @@
-// app/[id]/transactions/[categoryName]/page.jsx
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 
 import categoryMapping from '../../../utils/categoryMapping';
 
@@ -12,7 +11,6 @@ export default function CategoryTransactionsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const userId = params.id;
   const categoryName = params.categoryName;
   const dateFilterString = searchParams.get('date');
   const transacDsc = searchParams.get('transac_dsc');
@@ -21,43 +19,107 @@ export default function CategoryTransactionsPage() {
   const [error, setError] = useState(null);
 
   // Obtengo la info de mapeo de categoría (icono, color)
-  const categoryInfo = categoryMapping[categoryName];
+  const categoryInfo = categoryMapping[categoryName]
+
+  const fetchCategoryTransactions = async () => {
+    const token = localStorage.getItem("token");
+
+    try {
+      setError(null);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/get_transaction_by_user_category`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          category_name: categoryName,
+          date: dateFilterString,
+          transac_dsc: transacDsc,
+        }),
+      });
+
+      const resData = await response.json();
+      if (!response.ok) {
+        throw new Error(resData.message || "Error al obtener transacciones de la categoría.");
+      }
+
+      if (Array.isArray(resData.data)) {
+        setTransactions(resData.data);
+      } else {
+        setTransactions([]);
+        setError("Formato de datos inesperado.");
+      }
+    } catch (err) {
+      console.error("Error al cargar transacciones por categoría:", err);
+      setError(err.message || "Error desconocido al cargar transacciones.");
+      setTransactions([]);
+    }
+  };
 
   useEffect(() => {
-    async function fetchCategoryTransactions() {
-      try {
-        setError(null);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/get_transaction_by_user_category`, {
+    fetchCategoryTransactions();
+  }, [categoryName, dateFilterString, transacDsc]);
+
+  const handleDeleteTransaction = async (transactionId, amount) => {
+    const confirmDelete = window.confirm("¿Estás seguro de que quieres eliminar esta transacción?");
+    if (!confirmDelete) {
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Token de autenticación no disponible. Por favor, inicie sesión.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/delete_transaction`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          id_transaction: transactionId
+        })
+      });
+
+      const resData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(resData.message || "Error al eliminar la transacción.");
+      }
+
+      if (response.ok) {
+        const finalAmount = transacDsc == "expenses" ? amount : -amount
+        const responseUpdate = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/transactions/update_balance`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
           body: JSON.stringify({
-            id_user: userId,
-            category_name: categoryName,
-            date: dateFilterString,
-            transac_dsc: transacDsc,
-          }),
+            operacion: "$inc",
+            monto: finalAmount
+          })
         });
 
-        const resData = await response.json();
-        if (!response.ok) {
-          throw new Error(resData.message || "Error al obtener transacciones de la categoría.");
+        if (responseUpdate.ok) {
+          console.log("Transacción eliminada exitosamente:", resData.message);
+          fetchCategoryTransactions();
         }
 
-        if (Array.isArray(resData.data)) {
-          setTransactions(resData.data);
-        } else {
-          setTransactions([]);
-          setError("Formato de datos inesperado.");
-        }
-      } catch (err) {
-        console.error("Error al cargar transacciones por categoría:", err);
-        setError(err.message || "Error desconocido al cargar transacciones.");
-        setTransactions([]);
+
       }
-    }
-    fetchCategoryTransactions();
 
-  }, [userId, categoryName, dateFilterString, transacDsc]);
+
+    } catch (err) {
+      console.error("Error al eliminar la transacción:", err);
+      setError(err.message || "Error desconocido al eliminar la transacción.");
+    }
+  };
+
 
   const totalAmount = useMemo(() => {
     return transactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
@@ -93,9 +155,9 @@ export default function CategoryTransactionsPage() {
 
           {!error && transactions.length > 0 && (
             <div className="space-y-4">
-              {transactions.map((transaction, index) => (
-                <div key={index} className="bg-gray-700/60 rounded-xl p-4 flex items-center justify-between">
-                  <div className="flex flex-col items-start gap-0">
+              {transactions.map((transaction) => (
+                <div key={transaction._id} className="bg-gray-700/60 rounded-xl p-4 flex items-center justify-between">
+                  <div className="flex flex-col items-start gap-0 flex-grow">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full ${categoryInfo.bgColor} flex items-center justify-center text-xl`}>
                         {categoryInfo.icon}
@@ -108,7 +170,16 @@ export default function CategoryTransactionsPage() {
                       </p>
                     )}
                   </div>
-                  <span className="text-xl font-semibold">${transaction.amount.toLocaleString('es-AR')}</span>
+                  <div className="flex items-center gap-2 ml-4">
+                    <span className="text-xl font-semibold">${transaction.amount.toLocaleString('es-AR')}</span>
+                    <button
+                      onClick={() => handleDeleteTransaction(transaction._id, transaction.amount)}
+                      className="text-red-400 hover:text-red-600 transition-colors p-1 rounded-full focus:outline-none"
+                      aria-label={`Eliminar transacción de ${categoryInfo.name}`}
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
